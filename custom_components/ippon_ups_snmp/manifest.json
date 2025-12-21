@@ -1,10 +1,7 @@
 {
   "domain": "ippon_ups_snmp",
   "name": "Ippon UPS SNMP",
+  "version": "1.0.0",
   "codeowners": ["@Eugen417"],
-  "config_flow": true,
-  "documentation": "https://github.com/Eugen417/Ippon-UPS-SNMP",
-  "iot_class": "local_polling",
-  "requirements": ["pysnmp-lextudio==6.1.2"],
-  "version": "1.0.0"
+  "documentation": "https://github.com/Eugen417/Ippon-UPS-SNMP"
 }
