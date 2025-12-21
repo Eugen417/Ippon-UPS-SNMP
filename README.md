@@ -7,6 +7,8 @@
 * **ИБП:** [Innova G2 Euro 3000](https://ippon.ru/catalog/item/innova-g2-euro-3000/)
 * **SNMP-карта:** [Ippon NMC SNMP II](https://ippon.ru/catalog/item/ippon-NMC-SNMP-II-card-1022865/)
 
+[👉 Нажмите здесь, чтобы открыть установку в Home Assistant](https://my.home-assistant.io/redirect/hacs_repository/?owner=Eugen417&repository=Ippon-UPS-SNMP&category=integration)
+
 ---
 
 ## ✨ Особенности
