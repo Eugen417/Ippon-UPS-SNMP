@@ -7,17 +7,10 @@
 * **ИБП:** [Innova G2 Euro 3000](https://ippon.ru/catalog/item/innova-g2-euro-3000/)
 * **SNMP-карта:** [Ippon NMC SNMP II](https://ippon.ru/catalog/item/ippon-NMC-SNMP-II-card-1022865/)
 
-# Ippon UPS SNMP Integration for Home Assistant
+---
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/Eugen417/Ippon-UPS-SNMP)
 [![Open your Home Assistant instance and open a repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg?style=for-the-badge)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Eugen417&repository=Ippon-UPS-SNMP&category=integration)
-
----
-
-### 📦 [Установить интеграцию через HACS](https://my.home-assistant.io/redirect/hacs_repository/?owner=Eugen417&repository=Ippon-UPS-SNMP&category=integration)
-*(Нажмите на ссылку выше или на синюю кнопку, чтобы открыть Home Assistant)*
-
----
 
 ---
 
