@@ -66,3 +66,6 @@ action:
 4. Нажмите **Commit changes**.
 
 Теперь любой владелец такой же модели ИБП будет уверен, что эта интеграция ему подходит!
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
+
+[![](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Eugen417&repository=Ippon-UPS-SNMP&category=integration)
