@@ -1,5 +1,23 @@
 # Ippon UPS SNMP Integration for Home Assistant
 
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
+[![](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Eugen417&repository=Ippon-UPS-SNMP&category=integration)
+
+Интеграция для мониторинга ИБП **Ippon** через протокол **SNMP v3**.
+
+### ✅ Протестировано на оборудовании:
+* **ИБП:** [Innova G2 Euro 3000](https://ippon.ru/catalog/item/innova-g2-euro-3000/)
+* **SNMP-карта:** [Ippon NMC SNMP II](https://ippon.ru/catalog/item/ippon-NMC-SNMP-II-card-1022865/)
+
+---
+
+## 🚀 Быстрая установка через HACS
+
+1. Нажмите на кнопку **Open Repo in HACS** выше.
+2. В открывшемся окне вашего Home Assistant нажмите **Download**.
+3. Перезагрузите Home Assistant.
+4. Перейдите в **Настройки** -> **Устройства и службы** -> **Добавить интеграцию** и найдите `Ippon UPS SNMP`.
+
 Интеграция для мониторинга источников бесперебойного питания (ИБП) **Ippon** через протокол SNMP v3.
 
 Разработано и протестировано на базе:
@@ -66,6 +84,3 @@ action:
 4. Нажмите **Commit changes**.
 
 Теперь любой владелец такой же модели ИБП будет уверен, что эта интеграция ему подходит!
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-
-[![](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Eugen417&repository=Ippon-UPS-SNMP&category=integration)
