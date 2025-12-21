@@ -1,7 +1,9 @@
 {
   "domain": "ippon_ups_snmp",
   "name": "Ippon UPS SNMP",
-  "version": "1.0.0",
   "codeowners": ["@Eugen417"],
   "documentation": "https://github.com/Eugen417/Ippon-UPS-SNMP"
+  "config_flow": true,
+  "requirements": ["pysnmp-lextudio==6.1.2"],
+  "version": "1.0.0",
 }
