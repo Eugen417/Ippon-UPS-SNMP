@@ -1,64 +1,61 @@
-from __future__ import annotations
-from dataclasses import dataclass
-from homeassistant.components.sensor import (
-    SensorDeviceClass, SensorEntity, SensorEntityDescription, SensorStateClass
-)
-from homeassistant.const import (
-    PERCENTAGE, UnitOfElectricPotential, UnitOfTemperature, UnitOfTime, UnitOfFrequency
-)
-from .const import DOMAIN, OIDS, BATTERY_STATUS_MAP, SYSTEM_STATUS_MAP, TEST_RESULT_MAP, OUTPUT_SOURCE_MAP
-from .entity import IpponEntity
+import logging
+from datetime import timedelta
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, CoordinatorEntity
+from homeassistant.const import CONF_HOST, CONF_PORT, CONF_USERNAME, CONF_PASSWORD
+from .const import DOMAIN, SENSORS, MAPS, CONF_OID, CONF_NAME, CONF_UNIT, CONF_DIVISOR, CONF_MAP
+from pysnmp.hlapi.asyncio import SnmpEngine
 
-@dataclass(frozen=True, kw_only=True)
-class IpponSensorDesc(SensorEntityDescription):
-    scale: float = 1.0
-    map_dict: dict | None = None
-
-SENSOR_TYPES = [
-    IpponSensorDesc(key="battery.status", name="Battery Status", map_dict=BATTERY_STATUS_MAP, device_class=SensorDeviceClass.ENUM, options=list(BATTERY_STATUS_MAP.values())),
-    IpponSensorDesc(key="battery.runtime", name="Battery Runtime", native_unit_of_measurement=UnitOfTime.MINUTES, device_class=SensorDeviceClass.DURATION, state_class=SensorStateClass.MEASUREMENT),
-    IpponSensorDesc(key="ups.source", name="Output Source", map_dict=OUTPUT_SOURCE_MAP, device_class=SensorDeviceClass.ENUM, options=list(OUTPUT_SOURCE_MAP.values())),
-    IpponSensorDesc(key="battery.voltage", name="Battery Voltage", native_unit_of_measurement=UnitOfElectricPotential.VOLT, device_class=SensorDeviceClass.VOLTAGE, state_class=SensorStateClass.MEASUREMENT, scale=0.1),
-    IpponSensorDesc(key="input.frequency", name="Input Frequency", native_unit_of_measurement=UnitOfFrequency.HERTZ, device_class=SensorDeviceClass.FREQUENCY, state_class=SensorStateClass.MEASUREMENT, scale=0.1),
-    IpponSensorDesc(key="input.voltage", name="Input Voltage", native_unit_of_measurement=UnitOfElectricPotential.VOLT, device_class=SensorDeviceClass.VOLTAGE, state_class=SensorStateClass.MEASUREMENT, scale=0.1),
-    IpponSensorDesc(key="output.frequency", name="Output Frequency", native_unit_of_measurement=UnitOfFrequency.HERTZ, device_class=SensorDeviceClass.FREQUENCY, state_class=SensorStateClass.MEASUREMENT, scale=0.1),
-    IpponSensorDesc(key="output.voltage", name="Output Voltage", native_unit_of_measurement=UnitOfElectricPotential.VOLT, device_class=SensorDeviceClass.VOLTAGE, state_class=SensorStateClass.MEASUREMENT, scale=0.1),
-    IpponSensorDesc(key="ups.status", name="System Status", map_dict=SYSTEM_STATUS_MAP, device_class=SensorDeviceClass.ENUM, options=list(SYSTEM_STATUS_MAP.values())),
-    IpponSensorDesc(key="ups.temperature", name="System Temperature", native_unit_of_measurement=UnitOfTemperature.CELSIUS, device_class=SensorDeviceClass.TEMPERATURE, state_class=SensorStateClass.MEASUREMENT, scale=0.1),
-    IpponSensorDesc(key="battery.temperature", name="Battery Temperature", native_unit_of_measurement=UnitOfTemperature.CELSIUS, device_class=SensorDeviceClass.TEMPERATURE, state_class=SensorStateClass.MEASUREMENT),
-    IpponSensorDesc(key="battery.test_result", name="Battery Test Result", map_dict=TEST_RESULT_MAP, device_class=SensorDeviceClass.ENUM, options=list(TEST_RESULT_MAP.values())),
-    IpponSensorDesc(key="battery.charge", name="Battery Charge", native_unit_of_measurement=PERCENTAGE, device_class=SensorDeviceClass.BATTERY, state_class=SensorStateClass.MEASUREMENT),
-]
+_LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    coordinator = entry.runtime_data
-    async_add_entities(IpponSensor(coordinator, entry, desc) for desc in SENSOR_TYPES)
+    host = entry.data[CONF_HOST]
+    port = entry.data.get(CONF_PORT, 161)
+    user = entry.data[CONF_USERNAME]
+    key = entry.data[CONF_PASSWORD]
+    
+    # Создаем движок в асинхронном контексте
+    engine = SnmpEngine()
 
-class IpponSensor(IpponEntity, SensorEntity):
-    def __init__(self, coordinator, entry, description):
-        super().__init__(coordinator, entry)
-        self.entity_description = description
-        self._attr_unique_id = f"{entry.entry_id}_{description.key}"
+    async def async_update_data():
+        from .snmp_helper import get_snmp_data_map
+        oids_to_fetch = {s_id: info[CONF_OID] for s_id, info in SENSORS.items()}
+        # Используем асинхронный вызов напрямую
+        return await get_snmp_data_map(engine, host, port, user, key, oids_to_fetch)
+
+    coordinator = DataUpdateCoordinator(
+        hass, 
+        _LOGGER, 
+        name="ippon_snmp_coordinator",
+        update_method=async_update_data,
+        update_interval=timedelta(seconds=30),
+    )
+
+    # Принудительное обновление перед созданием датчиков
+    await coordinator.async_config_entry_first_refresh()
+
+    entities = [IpponSnmpSensor(coordinator, host, s_id) for s_id in SENSORS]
+    async_add_entities(entities)
+
+class IpponSnmpSensor(CoordinatorEntity, SensorEntity):
+    def __init__(self, coordinator, host, sensor_id):
+        super().__init__(coordinator)
+        self._config = SENSORS[sensor_id]
+        self._attr_name = f"IPPON {self._config[CONF_NAME]}"
+        self._attr_unique_id = f"ippon_{host}_{sensor_id}"
+        self._attr_native_unit_of_measurement = self._config[CONF_UNIT]
+        self._attr_state_class = SensorStateClass.MEASUREMENT if self._config[CONF_UNIT] else None
+        self._attr_device_info = {"identifiers": {(DOMAIN, host)}, "name": f"IPPON UPS {host}"}
 
     @property
     def native_value(self):
-        if not self.coordinator.data:
-            return None
-        
-        oid = OIDS.get(self.entity_description.key)
-        raw = self.coordinator.data.get(oid)
-        
-        if raw is None or str(raw).lower() in ["none", ""]:
-            return None
-            
+        if not self.coordinator.data: return None
+        raw = self.coordinator.data.get(self._config[CONF_OID])
+        if raw is None: return None
         try:
-            if self.entity_description.map_dict:
-                return self.entity_description.map_dict.get(int(raw), "unknown")
-            
-            val = float(raw)
-            if self.entity_description.scale != 1.0:
-                val = val * self.entity_description.scale
-            
-            return round(val, 1) if val % 1 != 0 else int(val)
-        except (ValueError, TypeError):
-            return raw
+            val = int(raw)
+            if self._config[CONF_MAP]:
+                return MAPS[self._config[CONF_MAP]].get(val, "unknown")
+            return round(val / self._config[CONF_DIVISOR], 1)
+        except:
+            return str(raw)
