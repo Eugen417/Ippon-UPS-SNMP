@@ -3,8 +3,9 @@
   "name": "Ippon UPS SNMP",
   "codeowners": ["@Eugen417"],
   "config_flow": true,
+  "integration_type": "device",
   "documentation": "https://github.com/Eugen417/Ippon-UPS-SNMP",
   "iot_class": "local_polling",
-  "requirements": ["pysnmp-lextudio==6.1.2"],
-  "version": "1.0.0"
+  "requirements": ["pysnmp>=7.1.2"],
+  "version": "1.0.1"
 }
