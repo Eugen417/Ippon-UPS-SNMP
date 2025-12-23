@@ -7,40 +7,46 @@ from pysnmp.hlapi.asyncio import (
     ContextData, 
     ObjectType, 
     ObjectIdentity,
-    get_cmd as getCmd 
+    getCmd
 )
 
 _LOGGER = logging.getLogger(__name__)
 
 async def get_snmp_data_map(engine, host, port, user, auth_key, oids_map):
-    """
-    Асинхронный групповой запрос через проверенный метод.
-    """
+    """Асинхронный опрос через SNMPv3 AuthNoPriv."""
     try:
-        auth_data = UsmUserData(user, authKey=auth_key, authProtocol=usmHMACMD5AuthProtocol)
-        # Создаем цель
-        target = await UdpTransportTarget.create((host, port), timeout=3.0, retries=2)
+        # Настройка авторизации: MD5 и отсутствие приватного ключа (authNoPriv)
+        auth_data = UsmUserData(
+            user, 
+            authKey=auth_key, 
+            authProtocol=usmHMACMD5AuthProtocol
+            # Шифрование (privKey) не указываем, так как используем authNoPriv
+        )
         
-        # Запрашиваем без поиска MIB (минимизируем блокировки)
+        # Прямой конструктор цели
+        target = UdpTransportTarget((host, port), timeout=5.0, retries=3)
+        
+        # Формируем список OID
         var_binds_input = [
             ObjectType(ObjectIdentity(oid).addAsn1MibSource()) 
             for oid in oids_map.values()
         ]
 
-        result = await getCmd(
-            engine, auth_data, target, ContextData(), *var_binds_input
-        )
-
+        # Запрос
+        result = await getCmd(engine, auth_data, target, ContextData(), *var_binds_input)
         error_indication, error_status, _, var_binds = result
 
-        if error_indication or error_status:
+        if error_indication:
+            _LOGGER.error("v3 Сетевая ошибка: %s", error_indication)
+            return {}
+        
+        if error_status:
+            _LOGGER.error("v3 Ошибка ИБП: %s", error_status)
             return {}
 
-        results = {}
-        for var_bind in var_binds:
-            results[str(var_bind[0])] = var_bind[1]
-        return results
+        # Возвращаем данные
+        return {str(vb[0]): vb[1].prettyPrint() for vb in var_binds}
 
     except Exception as e:
-        _LOGGER.error("SNMP Helper Error: %s", e)
+        _LOGGER.error("Критическая ошибка v3 хелпера: %s", e)
         return {}
