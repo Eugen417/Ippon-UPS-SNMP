@@ -7,5 +7,5 @@
   "documentation": "https://github.com/Eugen417/Ippon-UPS-SNMP",
   "iot_class": "local_polling",
   "requirements": ["pysnmp>=7.1.2"],
-  "version": "1.0.1"
+  "version": "1.0.2"
 }
