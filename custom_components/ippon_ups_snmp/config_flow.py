@@ -13,7 +13,7 @@ class IpponFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema({
                 vol.Required(CONF_HOST): str,
                 vol.Required(CONF_PORT, default=161): int,
-                vol.Required(CONF_USERNAME, default="HomeAs"): str,
-                vol.Required(CONF_PASSWORD, default="HomeAs190"): str,
+                vol.Required(CONF_USERNAME, default="USERNAME"): str,
+                vol.Required(CONF_PASSWORD, default="PASSWORD"): str,
             })
         )
