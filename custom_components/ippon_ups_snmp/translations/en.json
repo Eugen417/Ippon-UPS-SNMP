@@ -1,0 +1,64 @@
+{
+  "entity": {
+    "sensor": {
+      "test_result": { "name": "Battery Test Result", "state": { "idle": "Idle", "processing": "Processing", "noFailure": "Success", "failureOrWarning": "Failure/Warning", "notPossible": "Not Possible", "testCancel": "Cancelled" } },
+      "battery_status": { "name": "Battery Status", "state": { "unknown": "Unknown", "normal": "Normal", "low": "Low", "depleted": "Depleted", "charging": "Charging", "discharging": "Discharging" } },
+      "battery_charge": { "name": "Battery Charge" },
+      "battery_runtime": { "name": "Battery Runtime" },
+      "battery_voltage": { "name": "Battery Voltage" },
+      "battery_temperature": { "name": "Battery Temperature" },
+      "input_frequency": { "name": "Input Frequency" },
+      "input_voltage": { "name": "Input Voltage" },
+      "output_frequency": { "name": "Output Frequency" },
+      "output_voltage": { "name": "Output Voltage" },
+      "output_load": { "name": "Output Load" },
+      "system_status": { "name": "System Status", "state": { "power-on": "Power On", "stand-by": "Stand-by", "by-pass": "Bypass", "line": "Line", "battery": "Battery", "battery-test": "Battery Test", "fault": "Fault", "converter": "Converter", "eco": "ECO Mode", "shutdown": "Shutdown", "on-booster": "Booster", "on-reducer": "Reducer", "other": "Other" } },
+      "system_temperature": { "name": "System Temperature" },
+      "output_source": { "name": "Output Source", "state": { "other": "Other", "none": "None", "normal": "Normal", "bypass": "Bypass", "battery": "Battery", "booster": "Booster", "reducer": "Reducer" } },
+      "alarms_present": { "name": "Alarms Present" },
+      "seconds_on_battery": { "name": "Seconds on Battery" },
+      "battery_current": { "name": "Battery Current" },
+      "input_current": { "name": "Input Current" },
+      "input_watts": { "name": "Input Watts" },
+      "output_current": { "name": "Output Current" },
+      "output_watts": { "name": "Output Watts" },
+      "output_va": { "name": "Output VA" },
+      "bypass_frequency": { "name": "Bypass Frequency" },
+      "bypass_voltage": { "name": "Bypass Voltage" },
+      "battery_voltage_negative": { "name": "Battery Negative Voltage" },
+      "battery_abm_status": { "name": "Battery ABM Status", "state": { "charge": "Charge", "float": "Float", "rest": "Rest", "discharge": "Discharge", "disable": "Disable" } },
+      "env_temperature": { "name": "Env Temperature" },
+      "env_humidity": { "name": "Env Humidity" }
+    },
+    "number": {
+      "shutdown_capacity_limit": { "name": "Shutdown Capacity Limit" },
+      "shutdown_runtime_limit": { "name": "Shutdown Runtime Limit" },
+      "over_temperature_limit": { "name": "Over Temperature Limit" },
+      "high_load_limit": { "name": "High Load Limit" },
+      "control_off_delay": { "name": "UPS Off Delay" },
+      "control_on_delay": { "name": "UPS Sleep Mode Time" },
+      "battery_test_time": { "name": "Battery Test Time" }
+    },
+    "select": {
+      "control_action": { 
+        "name": "Control Action",
+        "state": {
+          "turn_off": "Turn Off UPS",
+          "turn_on_cancel": "Turn On / Cancel Off",
+          "sleep": "Sleep Mode",
+          "none": "None"
+        }
+      }
+    },
+    "switch": {
+      "buzzer": { "name": "Audible Alarm (Buzzer)" }
+    },
+    "button": {
+      "test_10sec": { "name": "Quick Test (10 sec)" },
+      "test_until_low": { "name": "Test Until Depleted" },
+      "test_by_time": { "name": "Test By Time" },
+      "test_cancel": { "name": "Cancel Test" },
+      "clear_info": { "name": "Clear Test Info" }
+    }
+  }
+}

@@ -13,7 +13,7 @@ TEST_OID = "1.3.6.1.2.1.33.1.2.1.0"
 
 async def validate_input(hass: HomeAssistant, data: dict) -> dict:
     """Проверка подключения к SNMP перед созданием записи."""
-    # Создаем временный движок для проверки (или используем существующий, если есть)
+    # Создаем временный движок для проверки
     engine = SnmpEngine()
     
     test_map = {"test_check": TEST_OID}

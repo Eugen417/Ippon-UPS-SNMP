@@ -1,0 +1,64 @@
+{
+  "entity": {
+    "sensor": {
+      "test_result": { "name": "Результат теста", "state": { "idle": "Ожидание", "processing": "Выполняется", "noFailure": "Успешно", "failureOrWarning": "Ошибка", "notPossible": "Невозможно", "testCancel": "Отменен" } },
+      "battery_status": { "name": "Статус батареи", "state": { "unknown": "Неизвестно", "normal": "В норме", "low": "Разряжена", "depleted": "Истощена", "charging": "Зарядка", "discharging": "Разрядка" } },
+      "battery_charge": { "name": "Уровень заряда" },
+      "battery_runtime": { "name": "Оставшееся время" },
+      "battery_voltage": { "name": "Напряжение батареи" },
+      "battery_temperature": { "name": "Температура батареи" },
+      "input_frequency": { "name": "Входная частота" },
+      "input_voltage": { "name": "Входное напряжение" },
+      "output_frequency": { "name": "Выходная частота" },
+      "output_voltage": { "name": "Выходное напряжение" },
+      "output_load": { "name": "Нагрузка" },
+      "system_status": { "name": "Статус системы", "state": { "power-on": "Включение", "stand-by": "Ожидание", "by-pass": "Байпас", "line": "Сеть", "battery": "Батарея", "battery-test": "Тест батареи", "fault": "Ошибка", "converter": "Конвертер", "eco": "Эко-режим", "shutdown": "Выключение", "on-booster": "Повышение", "on-reducer": "Понижение", "other": "Другое" } },
+      "system_temperature": { "name": "Температура системы" },
+      "output_source": { "name": "Источник питания", "state": { "other": "Другое", "none": "Нет", "normal": "Сеть", "bypass": "Байпас", "battery": "Батарея", "booster": "Повышение", "reducer": "Понижение" } },
+      "alarms_present": { "name": "Активные тревоги" },
+      "seconds_on_battery": { "name": "Секунд от батареи" },
+      "battery_current": { "name": "Ток батареи" },
+      "input_current": { "name": "Входной ток" },
+      "input_watts": { "name": "Входная мощность" },
+      "output_current": { "name": "Выходной ток" },
+      "output_watts": { "name": "Выходная мощность" },
+      "output_va": { "name": "Выходная мощность (ВА)" },
+      "bypass_frequency": { "name": "Частота байпаса" },
+      "bypass_voltage": { "name": "Напряжение байпаса" },
+      "battery_voltage_negative": { "name": "Отр. напряжение батареи" },
+      "battery_abm_status": { "name": "Статус ABM", "state": { "charge": "Зарядка", "float": "Поддержка", "rest": "Отдых", "discharge": "Разрядка", "disable": "Отключено" } },
+      "env_temperature": { "name": "Температура среды" },
+      "env_humidity": { "name": "Влажность среды" }
+    },
+    "number": {
+      "shutdown_capacity_limit": { "name": "Порог откл. по разряду" },
+      "shutdown_runtime_limit": { "name": "Порог откл. по времени" },
+      "over_temperature_limit": { "name": "Порог перегрева" },
+      "high_load_limit": { "name": "Порог перегрузки" },
+      "control_off_delay": { "name": "Задержка отключения ИБП" },
+      "control_on_delay": { "name": "Задержка спящего режима" },
+      "battery_test_time": { "name": "Время теста батарей" }
+    },
+    "select": {
+      "control_action": { 
+        "name": "Действие (Управление ИБП)",
+        "state": {
+          "turn_off": "Выключить ИБП",
+          "turn_on_cancel": "Вкл. ИБП / Отмена выкл.",
+          "sleep": "Спящий режим",
+          "none": "Пусто (Нет действия)"
+        }
+      }
+    },
+    "switch": {
+      "buzzer": { "name": "Звуковая сигнализация" }
+    },
+    "button": {
+      "test_10sec": { "name": "Быстрый тест (10 сек)" },
+      "test_until_low": { "name": "Тест до разрядки" },
+      "test_by_time": { "name": "Тест по времени" },
+      "test_cancel": { "name": "Отмена теста" },
+      "clear_info": { "name": "Очистить информацию" }
+    }
+  }
+}
