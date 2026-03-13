@@ -22,7 +22,6 @@ async def async_setup_entry(hass, entry, async_add_entities):
         await asyncio.sleep(0.5)
 
     if coordinator:
-        # Только управление ИБП (будет в главном разделе)
         async_add_entities([
             IpponActionSelect(coordinator, engine, host, port, user, key, OID_CONTROL_ACTION, "control_action", "mdi:power-settings", None)
         ])

@@ -36,25 +36,13 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     async def async_update_data():
         oids = {s_id: info[CONF_OID] for s_id, info in SENSORS.items()}
-        oids["_dev_man"] = OID_MANUFACTURER
-        oids["_dev_mod"] = OID_MODEL
-        oids["_dev_fw"] = OID_FW_VERSION
-        oids["_dev_desc"] = OID_DESCRIPTION
-        oids["_dev_nmc"] = OID_NMC_VERSION
-        oids["_dev_mac"] = OID_MAC_ADDRESS
         
-        oids["_dev_buz"] = OID_BUZZER
-        oids[OID_BATTERY_TEST_CMD] = OID_BATTERY_TEST_CMD
-        oids[OID_BATTERY_TEST_TIME] = OID_BATTERY_TEST_TIME
-        
-        oids[OID_CONF_CAPACITY_LIMIT] = OID_CONF_CAPACITY_LIMIT
-        oids[OID_CONF_TIME_LIMIT] = OID_CONF_TIME_LIMIT
-        oids[OID_CONF_TEMP_LIMIT] = OID_CONF_TEMP_LIMIT
-        oids[OID_CONF_LOAD_LIMIT] = OID_CONF_LOAD_LIMIT
-        
-        oids[OID_CONTROL_ACTION] = OID_CONTROL_ACTION
-        oids[OID_CONTROL_OFF_DELAY] = OID_CONTROL_OFF_DELAY
-        oids[OID_CONTROL_ON_DELAY] = OID_CONTROL_ON_DELAY
+        # --- ИСПРАВЛЕНИЕ: Читаем системные данные по их реальным OID ---
+        for oid in [OID_MANUFACTURER, OID_MODEL, OID_FW_VERSION, OID_DESCRIPTION, OID_NMC_VERSION, OID_MAC_ADDRESS,
+                    OID_BUZZER, OID_BATTERY_TEST_CMD, OID_BATTERY_TEST_TIME,
+                    OID_CONF_CAPACITY_LIMIT, OID_CONF_TIME_LIMIT, OID_CONF_TEMP_LIMIT, OID_CONF_LOAD_LIMIT,
+                    OID_CONTROL_ACTION, OID_CONTROL_OFF_DELAY, OID_CONTROL_ON_DELAY]:
+            oids[oid] = oid
         
         return await get_snmp_data_map(engine, host, port, user, key, oids)
 
@@ -100,33 +88,48 @@ class IpponSnmpSensor(CoordinatorEntity, SensorEntity):
     @property
     def device_info(self):
         data = self.coordinator.data or {}
-        manufacturer = str(data.get("_dev_man") or "EPPC").strip()
-        model = str(data.get("_dev_mod") or "ON-LINE").strip()
-        ups_fw = str(data.get("_dev_fw") or "Unknown").strip()
-        nmc_fw = str(data.get("_dev_nmc") or "Unknown").strip()
         
-        description = str(data.get("_dev_desc") or "").strip()
+        def clean_val(oid, default="Неизвестно"):
+            val = str(data.get(oid, "")).strip()
+            if val in ["", "-1", "None", "unknown"]:
+                return default
+            return val
+
+        manufacturer = clean_val(OID_MANUFACTURER, "EPPC")
+        model = clean_val(OID_MODEL, "ON-LINE")
+        ups_fw = clean_val(OID_FW_VERSION)
+        nmc_fw = clean_val(OID_NMC_VERSION)
+        
+        # Обработка HEX описания (0xD0 0xA0...)
+        description = str(data.get(OID_DESCRIPTION, "")).strip()
         if description.startswith("0x"):
             try: description = bytes.fromhex(description[2:]).decode('utf-8')
             except Exception: pass
-                
-        model_display = f"{model} ({description})" if description and description.lower() != "none" else model
-        mac_raw = str(data.get("_dev_mac") or "").strip()
-        mac_address = None
-        if mac_raw.startswith("0x"):
-            mac_clean = mac_raw[2:]
-            if len(mac_clean) == 12: mac_address = ":".join(mac_clean[i:i+2] for i in range(0, 12, 2)).upper()
-        elif "-" in mac_raw: mac_address = mac_raw.replace("-", ":").upper()
-            
+        model_display = f"{model} ({description})" if description and description.lower() not in ["none", "-1", ""] else model
+
+        # Возвращаем название устройства к тому виду, который был (192.168.1.27 (IPPON ON-LINE))
         dev_info = {
             "identifiers": {(DOMAIN, self.host)},
             "name": f"{self.host} (IPPON {model})",
             "manufacturer": manufacturer,
-            "model": model_display,
-            "sw_version": ups_fw,
-            "hw_version": f"NMC: {nmc_fw}"
+            "model": model_display
         }
-        if mac_address: dev_info["connections"] = {(CONNECTION_NETWORK_MAC, mac_address)}
+        
+        # Записываем прошивки только если они реально пришли от ИБП
+        if ups_fw != "Неизвестно":
+            dev_info["sw_version"] = ups_fw
+        if nmc_fw != "Неизвестно":
+            dev_info["hw_version"] = f"NMC: {nmc_fw}"
+            
+        mac_raw = str(data.get(OID_MAC_ADDRESS, "")).strip()
+        if mac_raw and mac_raw not in ["-1", "None", "unknown"]:
+            if mac_raw.startswith("0x"):
+                mac_clean = mac_raw[2:]
+                if len(mac_clean) >= 12: 
+                    dev_info["connections"] = {(CONNECTION_NETWORK_MAC, ":".join(mac_clean[i:i+2] for i in range(0, 12, 2)).upper())}
+            elif "-" in mac_raw: 
+                dev_info["connections"] = {(CONNECTION_NETWORK_MAC, mac_raw.replace("-", ":").upper())}
+                
         return dev_info
 
     @property

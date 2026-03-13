@@ -15,7 +15,6 @@ async def async_setup_entry(hass, entry, async_add_entities):
     key = entry.data[CONF_PASSWORD]
     engine = hass.data[DOMAIN]["engine"]
 
-    # Кнопки со всеми вариантами тестов (из MIB)
     async_add_entities([
         IpponTestButton(engine, host, port, user, key, "test_10sec", 2, "mdi:battery-sync"),
         IpponTestButton(engine, host, port, user, key, "test_until_low", 3, "mdi:battery-minus-outline"),
@@ -37,7 +36,6 @@ class IpponTestButton(ButtonEntity):
         self._attr_translation_key = trans_key
         self._attr_unique_id = f"ippon_snmp_{host}_test_btn_{trans_key}"
         self._attr_icon = icon
-        # Кладем кнопки в Диагностику
         self._attr_entity_category = EntityCategory.DIAGNOSTIC
         self._attr_device_info = {"identifiers": {(DOMAIN, host)}}
 

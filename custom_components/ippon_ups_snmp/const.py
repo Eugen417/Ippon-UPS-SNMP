@@ -15,7 +15,10 @@ CONF_DIVISOR = "divisor"
 CONF_MAP = "map"
 CONF_ENABLED = "enabled"
 CONF_CATEGORY = "category"
+CONF_DESC_RU = "desc_ru"
+CONF_DESC_EN = "desc_en"
 
+# --- ТЕ САМЫЕ СИСТЕМНЫЕ OID ИЗ ВАШЕГО ДАМПА ---
 OID_MANUFACTURER = "1.3.6.1.4.1.935.10.1.1.1.1.0"
 OID_MODEL = "1.3.6.1.4.1.935.10.1.1.1.2.0"
 OID_FW_VERSION = "1.3.6.1.4.1.935.10.1.1.1.3.0"
@@ -45,7 +48,8 @@ MAPS = {
     },
     "test_result": {1: "idle", 2: "processing", 3: "noFailure", 4: "failureOrWarning", 5: "notPossible", 6: "testCancel"},
     "abm_status": {1: "charge", 2: "float", 3: "rest", 4: "discharge", 5: "disable"},
-    "control_action": { "turn_off": 1, "turn_on_cancel": 2, "sleep": 3, "none": 4 }
+    "control_action": { "turn_off": 1, "turn_on_cancel": 2, "sleep": 3, "none": 4 },
+    "battery_test_cmd": { "none": 1, "test_10sec": 2, "test_until_low": 3, "test_by_time": 4, "cancel_test": 5, "clear_info": 6 }
 }
 
 SENSORS = {

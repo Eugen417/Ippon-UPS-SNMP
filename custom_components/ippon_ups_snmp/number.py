@@ -24,17 +24,12 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     if coordinator:
         async_add_entities([
-            # Лимиты (Конфигурация)
             IpponConfigNumber(coordinator, engine, host, port, user, key, OID_CONF_CAPACITY_LIMIT, "shutdown_capacity_limit", 0, 100, PERCENTAGE, "mdi:battery-arrow-down", EntityCategory.CONFIG),
             IpponConfigNumber(coordinator, engine, host, port, user, key, OID_CONF_TIME_LIMIT, "shutdown_runtime_limit", 0, 120, UnitOfTime.MINUTES, "mdi:timer-off-outline", EntityCategory.CONFIG),
             IpponConfigNumber(coordinator, engine, host, port, user, key, OID_CONF_TEMP_LIMIT, "over_temperature_limit", 30, 100, UnitOfTemperature.CELSIUS, "mdi:thermometer-alert", EntityCategory.CONFIG),
             IpponConfigNumber(coordinator, engine, host, port, user, key, OID_CONF_LOAD_LIMIT, "high_load_limit", 50, 110, PERCENTAGE, "mdi:gauge-full", EntityCategory.CONFIG),
-            
-            # Таймеры управления (Главное меню - None)
             IpponConfigNumber(coordinator, engine, host, port, user, key, OID_CONTROL_OFF_DELAY, "control_off_delay", 0, 32767, UnitOfTime.SECONDS, "mdi:power-sleep", None),
             IpponConfigNumber(coordinator, engine, host, port, user, key, OID_CONTROL_ON_DELAY, "control_on_delay", 0, 9999, UnitOfTime.MINUTES, "mdi:timer-sand", None),
-            
-            # Время теста (Диагностика)
             IpponConfigNumber(coordinator, engine, host, port, user, key, OID_BATTERY_TEST_TIME, "battery_test_time", 1, 9999, UnitOfTime.MINUTES, "mdi:timer-sync", EntityCategory.DIAGNOSTIC)
         ])
 
@@ -51,7 +46,6 @@ class IpponConfigNumber(NumberEntity):
         self._attr_has_entity_name = True
         self._attr_translation_key = trans_key
         self._attr_unique_id = f"ippon_snmp_{host}_{trans_key}"
-        
         self._attr_native_min_value = min_val
         self._attr_native_max_value = max_val
         self._attr_native_step = 1
@@ -71,7 +65,7 @@ class IpponConfigNumber(NumberEntity):
                 if self.oid == OID_CONF_TEMP_LIMIT: 
                     return float_val / 10.0
                 if self.oid in [OID_CONTROL_ON_DELAY, OID_BATTERY_TEST_TIME]:
-                    return round(float_val / 60.0) # Показываем минуты, ИБП дает секунды
+                    return round(float_val / 60.0)
                 return float_val
             except ValueError: return None
         return None
@@ -81,7 +75,7 @@ class IpponConfigNumber(NumberEntity):
         if self.oid == OID_CONF_TEMP_LIMIT: 
             send_val = int(value * 10)
         elif self.oid in [OID_CONTROL_ON_DELAY, OID_BATTERY_TEST_TIME]:
-            send_val = int(value * 60) # Пишем секунды
+            send_val = int(value * 60)
             
         if await set_snmp_data(self.engine, self.host, self.port, self.user, self.key, self.oid, send_val):
             await self.coordinator.async_request_refresh()
