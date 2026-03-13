@@ -13,7 +13,7 @@ from pysnmp.hlapi.asyncio import SnmpEngine
 
 from .const import (
     DOMAIN, SENSORS, MAPS, CONF_OID, CONF_UNIT, CONF_DIVISOR, CONF_MAP, CONF_ENABLED, CONF_CATEGORY,
-    OID_MANUFACTURER, OID_MODEL, OID_FW_VERSION, OID_DESCRIPTION, OID_NMC_VERSION, OID_MAC_ADDRESS,
+    OID_MANUFACTURER, OID_MODEL, OID_FW_VERSION, OID_DESCRIPTION, OID_NMC_VERSION, OID_MAC_ADDRESS, OID_SYS_LOCATION,
     OID_BUZZER, OID_BATTERY_TEST_CMD, OID_BATTERY_TEST_TIME, OID_CONF_CAPACITY_LIMIT, OID_CONF_TIME_LIMIT, OID_CONF_TEMP_LIMIT, OID_CONF_LOAD_LIMIT,
     OID_CONTROL_ACTION, OID_CONTROL_OFF_DELAY, OID_CONTROL_ON_DELAY
 )
@@ -37,8 +37,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async def async_update_data():
         oids = {s_id: info[CONF_OID] for s_id, info in SENSORS.items()}
         
-        # --- ИСПРАВЛЕНИЕ: Читаем системные данные по их реальным OID ---
-        for oid in [OID_MANUFACTURER, OID_MODEL, OID_FW_VERSION, OID_DESCRIPTION, OID_NMC_VERSION, OID_MAC_ADDRESS,
+        for oid in [OID_MANUFACTURER, OID_MODEL, OID_FW_VERSION, OID_DESCRIPTION, OID_NMC_VERSION, OID_MAC_ADDRESS, OID_SYS_LOCATION,
                     OID_BUZZER, OID_BATTERY_TEST_CMD, OID_BATTERY_TEST_TIME,
                     OID_CONF_CAPACITY_LIMIT, OID_CONF_TIME_LIMIT, OID_CONF_TEMP_LIMIT, OID_CONF_LOAD_LIMIT,
                     OID_CONTROL_ACTION, OID_CONTROL_OFF_DELAY, OID_CONTROL_ON_DELAY]:
@@ -93,6 +92,10 @@ class IpponSnmpSensor(CoordinatorEntity, SensorEntity):
             val = str(data.get(oid, "")).strip()
             if val in ["", "-1", "None", "unknown"]:
                 return default
+            # Автоматическая расшифровка кириллицы/HEX для текста
+            if val.startswith("0x"):
+                try: val = bytes.fromhex(val[2:]).decode('utf-8')
+                except Exception: pass
             return val
 
         manufacturer = clean_val(OID_MANUFACTURER, "EPPC")
@@ -100,14 +103,14 @@ class IpponSnmpSensor(CoordinatorEntity, SensorEntity):
         ups_fw = clean_val(OID_FW_VERSION)
         nmc_fw = clean_val(OID_NMC_VERSION)
         
-        # Обработка HEX описания (0xD0 0xA0...)
-        description = str(data.get(OID_DESCRIPTION, "")).strip()
-        if description.startswith("0x"):
-            try: description = bytes.fromhex(description[2:]).decode('utf-8')
-            except Exception: pass
-        model_display = f"{model} ({description})" if description and description.lower() not in ["none", "-1", ""] else model
+        description = clean_val(OID_DESCRIPTION, "")
+        model_display = f"{model} ({description})" if description and description.lower() not in ["none", "неизвестно"] else model
 
-        # Возвращаем название устройства к тому виду, который был (192.168.1.27 (IPPON ON-LINE))
+        # Читаем локацию
+        location = clean_val(OID_SYS_LOCATION, "")
+        if location and location.lower() not in ["none", "неизвестно", ""]:
+            model_display += f" | Расположение: {location}"
+
         dev_info = {
             "identifiers": {(DOMAIN, self.host)},
             "name": f"{self.host} (IPPON {model})",
@@ -115,11 +118,14 @@ class IpponSnmpSensor(CoordinatorEntity, SensorEntity):
             "model": model_display
         }
         
-        # Записываем прошивки только если они реально пришли от ИБП
         if ups_fw != "Неизвестно":
             dev_info["sw_version"] = ups_fw
         if nmc_fw != "Неизвестно":
             dev_info["hw_version"] = f"NMC: {nmc_fw}"
+            
+        # Устанавливаем комнату в Home Assistant!
+        if location and location.lower() not in ["none", "неизвестно", ""]:
+            dev_info["suggested_area"] = location
             
         mac_raw = str(data.get(OID_MAC_ADDRESS, "")).strip()
         if mac_raw and mac_raw not in ["-1", "None", "unknown"]:
