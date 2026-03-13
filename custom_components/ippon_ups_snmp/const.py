@@ -18,15 +18,16 @@ CONF_CATEGORY = "category"
 CONF_DESC_RU = "desc_ru"
 CONF_DESC_EN = "desc_en"
 
-# --- ТЕ САМЫЕ СИСТЕМНЫЕ OID ИЗ ВАШЕГО ДАМПА ---
+# Системные OID (Ваши проверенные рабочие адреса)
 OID_MANUFACTURER = "1.3.6.1.4.1.935.10.1.1.1.1.0"
 OID_MODEL = "1.3.6.1.4.1.935.10.1.1.1.2.0"
 OID_FW_VERSION = "1.3.6.1.4.1.935.10.1.1.1.3.0"
 OID_DESCRIPTION = "1.3.6.1.4.1.935.10.1.1.1.5.0"
 OID_NMC_VERSION = "1.3.6.1.4.1.935.10.1.1.1.6.0"
 OID_MAC_ADDRESS = "1.3.6.1.2.1.2.2.1.6.2"
-OID_BUZZER = "1.3.6.1.2.1.33.1.9.8.0"
+OID_SYS_LOCATION = "1.3.6.1.2.1.1.6.0"  # <--- Добавлен OID Расположения
 
+OID_BUZZER = "1.3.6.1.2.1.33.1.9.8.0"
 OID_BATTERY_TEST_CMD = "1.3.6.1.4.1.935.10.1.1.7.1.0"
 OID_BATTERY_TEST_TIME = "1.3.6.1.4.1.935.10.1.1.7.2.0"
 
