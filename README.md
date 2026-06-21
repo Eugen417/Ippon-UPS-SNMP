@@ -72,5 +72,6 @@ action:
 ```
 
 ---
+<img width="349" height="780" alt="Снимок экрана — 2026-06-21 в 17 27 55" src="https://github.com/user-attachments/assets/8062dda1-4d21-4f77-9ce6-3beed5c500a9" />
 
 **Разработчик:** [@Eugen417](https://www.google.com/search?q=https://github.com/Eugen417)
