@@ -9,7 +9,6 @@ from homeassistant.const import (
     UnitOfElectricPotential, UnitOfTemperature, UnitOfFrequency, 
     UnitOfElectricCurrent, UnitOfPower, UnitOfApparentPower
 )
-from pysnmp.hlapi.asyncio import SnmpEngine
 
 from .const import (
     DOMAIN, SENSORS, MAPS, CONF_OID, CONF_UNIT, CONF_DIVISOR, CONF_MAP, CONF_ENABLED, CONF_CATEGORY,
@@ -17,7 +16,7 @@ from .const import (
     OID_BUZZER, OID_BATTERY_TEST_CMD, OID_BATTERY_TEST_TIME, OID_CONF_CAPACITY_LIMIT, OID_CONF_TIME_LIMIT, OID_CONF_TEMP_LIMIT, OID_CONF_LOAD_LIMIT,
     OID_CONTROL_ACTION, OID_CONTROL_OFF_DELAY, OID_CONTROL_ON_DELAY
 )
-from .snmp_helper import get_snmp_data_map
+from .snmp_helper import async_get_snmp_data_map
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,24 +25,15 @@ async def async_setup_entry(hass, entry, async_add_entities):
     port = entry.data.get(CONF_PORT, 161)
     user = entry.data[CONF_USERNAME]
     key = entry.data[CONF_PASSWORD]
-    
-    if DOMAIN not in hass.data: hass.data[DOMAIN] = {}
-    
-    engine = hass.data[DOMAIN].get("engine")
-    if not engine:
-        engine = await hass.async_add_executor_job(SnmpEngine)
-        hass.data[DOMAIN]["engine"] = engine
 
     async def async_update_data():
         oids = {s_id: info[CONF_OID] for s_id, info in SENSORS.items()}
-        
         for oid in [OID_MANUFACTURER, OID_MODEL, OID_FW_VERSION, OID_DESCRIPTION, OID_NMC_VERSION, OID_MAC_ADDRESS, OID_SYS_LOCATION,
                     OID_BUZZER, OID_BATTERY_TEST_CMD, OID_BATTERY_TEST_TIME,
                     OID_CONF_CAPACITY_LIMIT, OID_CONF_TIME_LIMIT, OID_CONF_TEMP_LIMIT, OID_CONF_LOAD_LIMIT,
                     OID_CONTROL_ACTION, OID_CONTROL_OFF_DELAY, OID_CONTROL_ON_DELAY]:
             oids[oid] = oid
-        
-        return await get_snmp_data_map(engine, host, port, user, key, oids)
+        return await async_get_snmp_data_map(hass, host, port, user, key, oids)
 
     coordinator = DataUpdateCoordinator(
         hass, _LOGGER, name=f"ippon_snmp_{host}",
@@ -51,6 +41,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         update_interval=timedelta(seconds=30),
     )
 
+    if DOMAIN not in hass.data: hass.data[DOMAIN] = {}
     hass.data[DOMAIN][f"coordinator_{host}"] = coordinator
     await coordinator.async_refresh()
     async_add_entities([IpponSnmpSensor(coordinator, host, s_id) for s_id in SENSORS])
@@ -90,9 +81,7 @@ class IpponSnmpSensor(CoordinatorEntity, SensorEntity):
         
         def clean_val(oid, default="Неизвестно"):
             val = str(data.get(oid, "")).strip()
-            if val in ["", "-1", "None", "unknown"]:
-                return default
-            # Автоматическая расшифровка кириллицы/HEX для текста
+            if val in ["", "-1", "None", "unknown"]: return default
             if val.startswith("0x"):
                 try: val = bytes.fromhex(val[2:]).decode('utf-8')
                 except Exception: pass
@@ -102,12 +91,10 @@ class IpponSnmpSensor(CoordinatorEntity, SensorEntity):
         model = clean_val(OID_MODEL, "ON-LINE")
         ups_fw = clean_val(OID_FW_VERSION)
         nmc_fw = clean_val(OID_NMC_VERSION)
-        
         description = clean_val(OID_DESCRIPTION, "")
-        model_display = f"{model} ({description})" if description and description.lower() not in ["none", "неизвестно"] else model
-
-        # Читаем локацию
         location = clean_val(OID_SYS_LOCATION, "")
+        
+        model_display = f"{model} ({description})" if description and description.lower() not in ["none", "неизвестно"] else model
         if location and location.lower() not in ["none", "неизвестно", ""]:
             model_display += f" | Расположение: {location}"
 
@@ -118,23 +105,16 @@ class IpponSnmpSensor(CoordinatorEntity, SensorEntity):
             "model": model_display
         }
         
-        if ups_fw != "Неизвестно":
-            dev_info["sw_version"] = ups_fw
-        if nmc_fw != "Неизвестно":
-            dev_info["hw_version"] = f"NMC: {nmc_fw}"
-            
-        # Устанавливаем комнату в Home Assistant!
-        if location and location.lower() not in ["none", "неизвестно", ""]:
-            dev_info["suggested_area"] = location
+        if ups_fw != "Неизвестно": dev_info["sw_version"] = ups_fw
+        if nmc_fw != "Неизвестно": dev_info["hw_version"] = f"NMC: {nmc_fw}"
+        if location and location.lower() not in ["none", "неизвестно", ""]: dev_info["suggested_area"] = location
             
         mac_raw = str(data.get(OID_MAC_ADDRESS, "")).strip()
         if mac_raw and mac_raw not in ["-1", "None", "unknown"]:
             if mac_raw.startswith("0x"):
                 mac_clean = mac_raw[2:]
-                if len(mac_clean) >= 12: 
-                    dev_info["connections"] = {(CONNECTION_NETWORK_MAC, ":".join(mac_clean[i:i+2] for i in range(0, 12, 2)).upper())}
-            elif "-" in mac_raw: 
-                dev_info["connections"] = {(CONNECTION_NETWORK_MAC, mac_raw.replace("-", ":").upper())}
+                if len(mac_clean) >= 12: dev_info["connections"] = {(CONNECTION_NETWORK_MAC, ":".join(mac_clean[i:i+2] for i in range(0, 12, 2)).upper())}
+            elif "-" in mac_raw: dev_info["connections"] = {(CONNECTION_NETWORK_MAC, mac_raw.replace("-", ":").upper())}
                 
         return dev_info
 
