@@ -4,7 +4,7 @@ from homeassistant.components.select import SelectEntity
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_USERNAME, CONF_PASSWORD
 
 from .const import DOMAIN, OID_CONTROL_ACTION, MAPS
-from .snmp_helper import set_snmp_data
+from .snmp_helper import async_set_snmp_data
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -13,7 +13,6 @@ async def async_setup_entry(hass, entry, async_add_entities):
     port = entry.data.get(CONF_PORT, 161)
     user = entry.data[CONF_USERNAME]
     key = entry.data[CONF_PASSWORD]
-    engine = hass.data[DOMAIN]["engine"]
 
     coordinator = None
     for _ in range(20):
@@ -23,13 +22,13 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     if coordinator:
         async_add_entities([
-            IpponActionSelect(coordinator, engine, host, port, user, key, OID_CONTROL_ACTION, "control_action", "mdi:power-settings", None)
+            IpponActionSelect(coordinator, hass, host, port, user, key, OID_CONTROL_ACTION, "control_action", "mdi:power-settings", None)
         ])
 
 class IpponActionSelect(SelectEntity):
-    def __init__(self, coordinator, engine, host, port, user, key, oid, trans_key, icon, category):
+    def __init__(self, coordinator, hass_obj, host, port, user, key, oid, trans_key, icon, category):
         self.coordinator = coordinator
-        self.engine = engine
+        self.hass_obj = hass_obj
         self.host = host
         self.port = port
         self.user = user
@@ -55,5 +54,5 @@ class IpponActionSelect(SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         cmd_value = MAPS[self.trans_key].get(option, 4)
-        if await set_snmp_data(self.engine, self.host, self.port, self.user, self.key, self.oid, cmd_value):
+        if await async_set_snmp_data(self.hass_obj, self.host, self.port, self.user, self.key, self.oid, cmd_value):
             await self.coordinator.async_request_refresh()
